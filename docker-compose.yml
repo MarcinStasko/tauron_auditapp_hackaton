@@ -1,0 +1,23 @@
+name: tauron-auditapp
+
+include:
+  - path: ./infra/supabase/docker-compose.yml
+    env_file:
+      - ./infra/supabase/.env
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_SUPABASE_URL: http://localhost:54321
+        VITE_SUPABASE_PUBLISHABLE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1NDU1MjksImV4cCI6MTkzNDIyNTUyOX0.o2BWBDOX9erhjW-8Hqy8EVJVhfmBpYDmoOG55LCTGLU
+        VITE_GEOCODER_URL: https://nominatim.openstreetmap.org/search
+    depends_on:
+      kong:
+        condition: service_healthy
+      functions:
+        condition: service_started
+    ports:
+      - "${FRONTEND_PORT:-8080}:8080"

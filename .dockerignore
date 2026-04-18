@@ -1,0 +1,17 @@
+node_modules
+dist
+.git
+.github
+.vscode
+.idea
+.playwright-cli
+infra/supabase
+*.log
+.env.local
+.env.*.local
+playwright-report
+test-results
+coverage
+README.md
+supabase/.branches
+supabase/.temp
