@@ -1,47 +1,56 @@
 # Tauron Audit App
 
-Lokalny stack działa w Dockerze i składa się z:
+Lokalny stack sklada sie z:
 
 - frontendu Vite na `http://localhost:8080`
 - self-hosted Supabase API na `http://localhost:54321`
-- Edge Functions uruchamianych lokalnie w `supabase/functions`
+- Edge Functions z `supabase/functions`
 - publicznego geocodera Nominatim
 - Gemini Direct przez OpenAI-compatible endpoint
 
 ## Model API
 
-Edge Functions używają:
+Edge Functions uzywaja:
 
-- endpointu `POST https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`
-- nagłówka `Authorization: Bearer $GEMINI_API_KEY`
+- `POST https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`
+- `Authorization: Bearer $GEMINI_API_KEY`
 - modelu `gemini-2.5-flash`
 
-Konfiguracja znajduje się w [infra/supabase/.env](./infra/supabase/.env:1).
+Stala konfiguracja self-hosted Supabase jest w [infra/supabase/deployment.env](./infra/supabase/deployment.env:1).
 
 ## Start
 
-1. Ustaw `GEMINI_API_KEY` w [infra/supabase/.env](./infra/supabase/.env:44).
-2. Uruchom `npm install`.
-3. Uruchom `docker compose up --build`.
+1. Skopiuj [deployment.env.example](./deployment.env.example:1) do lokalnego `/.env`.
+2. Ustaw w `/.env` tylko `GEMINI_API_KEY`.
+3. Uruchom `npm install`.
+4. Uruchom `docker compose up --build`.
 
 Po starcie:
 
 - frontend: `http://localhost:8080`
 - Supabase API / Functions: `http://localhost:54321`
 
-Jeżeli `8080` jest zajęty przez inny proces lub kontener, uruchom frontend na innym porcie hosta:
+Jesli `8080` jest zajety, uruchom frontend na innym porcie hosta:
 
 ```bash
 FRONTEND_PORT=18080 docker compose up --build
 ```
 
-## Frontend env
+## Jakie env dodac
 
-Dla lokalnego developmentu poza Dockerem użyj [`.env.example`](./.env.example:1):
+Do Docker deploymentu potrzebujesz tylko:
 
-```bash
-cp .env.example .env.local
-```
+- `/.env`
+  - `GEMINI_API_KEY=<twoj klucz Google AI Studio>`
+
+Do lokalnego developmentu frontendu poza Dockerem opcjonalnie:
+
+- `/.env.local`
+  - `VITE_SUPABASE_URL=http://localhost:54321`
+  - `VITE_SUPABASE_PUBLISHABLE_KEY=<lokalny anon key z .env.example>`
+  - `VITE_GEOCODER_URL=https://nominatim.openstreetmap.org/search`
+
+Nie musisz tworzyc `/infra/supabase/.env` do zwyklego deploymentu. Wszystkie stale ustawienia stacku sa juz w [infra/supabase/deployment.env](./infra/supabase/deployment.env:1).
 
 ## Przydatne komendy
 
@@ -51,13 +60,13 @@ cp .env.example .env.local
 - `npm run docker:up`
 - `npm run docker:down`
 
-## Supabase infra
+## Supabase Infra
 
-- Lokalna konfiguracja runtime: [infra/supabase/.env](./infra/supabase/.env:1)
-- Compose self-hosted: [infra/supabase/docker-compose.yml](./infra/supabase/docker-compose.yml:1)
-- Oficjalny upstream reference: [infra/supabase/README.official.md](./infra/supabase/README.official.md:1)
+- runtime config: [infra/supabase/deployment.env](./infra/supabase/deployment.env:1)
+- compose: [infra/supabase/docker-compose.yml](./infra/supabase/docker-compose.yml:1)
+- upstream reference: [infra/supabase/README.official.md](./infra/supabase/README.official.md:1)
 
-Studio, analytics i vector są przeniesione do profilu `ops`, więc domyślne `docker compose up --build` startuje tylko to, czego potrzebuje aplikacja. Jeśli chcesz dołożyć komponenty operacyjne, uruchom:
+Studio, analytics i vector sa pod profilem `ops`. Jesli ich potrzebujesz:
 
 ```bash
 docker compose --profile ops up --build
@@ -65,11 +74,11 @@ docker compose --profile ops up --build
 
 ## Troubleshooting Gemini
 
-JeĹĽeli Functions zwracajÄ… `503`, sprawdĹş czy host i kontenery Dockera poprawnie rozwiÄ…zujÄ… domenÄ™ Gemini:
+Jesli Functions zwracaja `503`, sprawdz DNS i egress z hosta oraz z sieci Dockera:
 
 ```bash
 Resolve-DnsName generativelanguage.googleapis.com
 docker run --rm --network tauron-auditapp_default curlimages/curl:8.12.1 -I https://generativelanguage.googleapis.com/v1beta/openai/chat/completions
 ```
 
-Domena nie moĹĽe rozwiÄ…zywaÄ‡ siÄ™ do `0.0.0.0` ani `::`. JeĹ›li tak jest, problem leĹĽy w lokalnym DNS / filtracji sieci, a nie w kodzie aplikacji.
+Domena nie moze rozwiazywac sie do `0.0.0.0` ani `::`.

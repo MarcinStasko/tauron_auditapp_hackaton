@@ -3,7 +3,7 @@ name: tauron-auditapp
 include:
   - path: ./infra/supabase/docker-compose.yml
     env_file:
-      - ./infra/supabase/.env
+      - ./infra/supabase/deployment.env
 
 services:
   frontend:
